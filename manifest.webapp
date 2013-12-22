@@ -1,0 +1,11 @@
+{
+  "name": "Wake No Evil",
+  "description": "Don't delve too deep ...",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "Paul Theodor Pyl",
+    "url": "http://your-homepage-here.org"
+  },
+  "default_locale": "en",
+  "fullscreen": "true"
+}
