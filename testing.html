@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>Animated Dwarfs with Mini Daemon</title>
+<script type="text/javascript" src="minidaemon.js"></script>
+<style type="text/css">
+canvas {
+position: absolute;
+top:0;
+left:0;
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="bg" style="background:black;"> U be missing canvas support dude!</canvas>
+<canvas id="anim" style="background: rgba(0,0,0,0);"> U be missing canvas support dude!</canvas>
+
+<script type="text/javascript">
+var tileSize = 20;
+
+function Dwarf( x, y, source, nFrames = 2, canvas ){
+  this.x = x;
+  this.y = y;
+  this.image = new Image();
+  this.image.src = source;
+  this.nFrames = nFrames;
+  this.canvas = canvas;
+  this.canvas.width = window.innerWidth;
+  this.canvas.height = window.innerHeight;
+  this.daemon = new MiniDaemon( this, this.animate, 500 );
+  this.canvas.addEventListener("touchstart", this.handleStart, false);
+  this.canvas.addEventListener("touchend", this.handleEnd, false);
+  this.canvas.addEventListener("touchcancel", this.handleCancel, false);
+  this.canvas.addEventListener("touchleave", this.handleEnd, false);
+  this.canvas.addEventListener("touchmove", this.handleMove, false);
+  this.touches = [];
+};
+
+Dwarf.prototype.animate = function( index, length, backwards ){
+  var ctx = this.canvas.getContext('2d');
+  ctx.globalCompositeOperation = 'destination-over';
+  ctx.clearRect(0,0,this.canvas.width,this.canvas.height); // clear canvas
+  var tick = index % this.nFrames;
+  ctx.drawImage(this.image, tileSize*tick, 0, tileSize*tick + tileSize, tileSize, this.x, this.y, tileSize, tileSize);
+};
+
+Dwarf.prototype.handleStart = function( event ){
+  event.preventDefault();
+  var touches = event.changedTouches;
+
+  for( var i = 0; i < touches.length; i++ ){
+    this.touches.push( copyTouch( touches[i] ) );
+  }
+};
+
+Dwarf.prototype.handleMove = function(event) {
+  evt.preventDefault();
+  var touches = event.changedTouches;
+
+  for (var i = 0; i < touches.length; i++) {
+    var idx = this.getTouchIndexById(touches[i].identifier);
+
+    if(idx >= 0) {
+      this.touches.splice(idx, 1, copyTouch(touches[i]));  // swap in the new touch record
+    } else {
+      alert("can't figure out which touch to continue");
+    }
+  }
+}
+
+Dwarf.prototype.handleEnd = function (event) {
+  event.preventDefault();
+  var touches = event.changedTouches;
+
+  for (var i = 0; i < touches.length; i++) {
+    var idx = this.getTouchIndexById(touches[i].identifier);
+    if(idx >= 0) {
+      this.x = touches[i].pageX;
+      this.y = touches[i].pageY;
+      this.touches.splice(idx, 1);  // remove it; we're done
+    } else {
+      alert("can't figure out which touch to end");
+    }
+  }
+}
+
+Dwarf.prototype.handleCancel = function (event) {
+  event.preventDefault();
+  var touches = event.changedTouches;
+  
+  for (var i = 0; i < touches.length; i++) {
+    var idx = this.getTouchIndexById(touches[i].identifier);
+    this.touches.splice(idx, 1);  // remove it; we're done
+  }
+}
+
+Dwarf.prototype.getTouchIndexById = function (idToFind) {
+  for (var i = 0; i < this.touches.length; i++) {
+    var id = this.touches[i].identifier;
+    
+    if (id == idToFind) {
+      return i;
+    }
+  }
+  return -1;    // not found
+}
+
+function copyTouch(touch) {
+  return { identifier: touch.identifier, pageX: touch.pageX, pageY: touch.pageY };
+}
+
+var dwarf = new Dwarf( 100, 100, "dwarf.001.png", 2, document.getElementById('anim'));
+dwarf.daemon.start();
+
+</script>
+</body>
+</html>
