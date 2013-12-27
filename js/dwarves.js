@@ -101,14 +101,6 @@ function randomWorld( xSize, ySize ){
     return tmp;
 };
 
-function getWorldTileTick( x, y ){
-    var neighbourhood = theWorld.slice( Math.max( x - 1, 0), Math.min( x + 1, theWorld.length) ); //TODO: Add failsafes for border conditions
-    neighbourhood = neighbourhood.map( function(a) { return a.slice( Math.max(0, y - 1), Math.min( y + 1, a.length) );});
-    var nSum = neighbourhood.reduce(function(a,b) {return a + b});
-    console.log( x + "-" + y + ":" + nSum);
-    return 0;
-};
-
 function renderWorld(){
     var tileImage = new Image();
     tileImage.onload = function(){
@@ -119,14 +111,33 @@ function renderWorld(){
 		var x = tileToPx( i );
 		var y = tileToPx( j );
 		var tick = 0;
-		if( theWorld[i][j] == 1){
-		    tick = getWorldTileTick( i, j );
-		    worldContext.drawImage(tileImage, imageTileSize*tick, 0, imageTileSize, imageTileSize, x, y, tileSize, tileSize);
+		if( theWorld[i][j] ){
+		    worldContext.drawImage(tileImage, 0, 0, imageTileSize, imageTileSize, x, y, tileSize, tileSize); //draw the fill of squares
+		    if( i > 0){
+			if( theWorld[i-1][j] ){
+			    worldContext.drawImage(tileImage, imageTileSize, 0, imageTileSize, imageTileSize, x, y, tileSize, tileSize); //draw the top side
+			}
+		    }
+		    if( j < theWorld[i].length ){
+			if( theWorld[i][j+1] ){
+			    worldContext.drawImage(tileImage, 2*imageTileSize, 0, imageTileSize, imageTileSize, x, y, tileSize, tileSize); //draw the right side
+			}
+		    }
+		    if( i < theWorld.length ){
+			if( theWorld[i+1][j] ){
+			    worldContext.drawImage(tileImage, 3*imageTileSize, 0, imageTileSize, imageTileSize, x, y, tileSize, tileSize); //draw the bottom side
+			}
+		    }
+		    if( j > 0 ){
+			if( theWorld[i][j-1] ){
+			    worldContext.drawImage(tileImage, 4*imageTileSize, 0, imageTileSize, imageTileSize, x, y, tileSize, tileSize); //draw the left side
+			}
+		    }
 		}
 	    }
 	}
     };
-    tileImage.src = "resources/rock.tiles.png";
+    tileImage.src = "resources/rock.tiles.simple.png";
 };
 
 function spawnDwarf( tileX, tileY ){
