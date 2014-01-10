@@ -23,14 +23,17 @@ function Dwarf( x, y, status ){
 
 Dwarf.prototype.setStatus = function( status ){
     if( status == "idle" ){
-	this.image.src = 'resources/dwarf.001.png';
-	this.nFrames = 1;
+	this.image.src = 'resources/dwarf.idle.png';
+	this.nFrames = 4;
     }else if( status == "mining" ){
 	this.image.src = 'resources/dwarf.002.png';
 	this.nFrames = 4;
     }else if( status == "rock" ){
 	this.image.src = 'resources/rock.tiles.png';
 	this.nFrames = 8;
+    }else if( status == "monkey" ){
+	this.image.src = 'resources/demon.monkey.png';
+	this.nFrames = 1;
     }else{ //default to idle state
 	this.setStatus( "idle" );
     }
@@ -57,6 +60,14 @@ function animate( index, length, backwards ){
 	    dwarfContext.stroke();
 	}
     }
+    for( var tidx = 0; tidx < miningQueue.length; ++tidx ){
+	var x = tileToPx( miningQueue[tidx][0] );
+	var y = tileToPx( miningQueue[tidx][1] );
+	dwarfContext.beginPath();
+	dwarfContext.rect(x+1, y+1, tileSize-2, tileSize-2);
+	dwarfContext.strokeStyle = 'rgba( 128, 24, 24, 128 )';
+	dwarfContext.stroke();
+    }
 };
 
 /*c.addEventListener("touchend", handleEnd, false);
@@ -74,10 +85,11 @@ function handleStart( event ){
 	for( var j = 0; j < dwarves.length; ++j){
 	    if( dwarves[j].x == touchedTile[0] && dwarves[j].y == touchedTile[1]){
 		console.log( "Dwarf hit!" );
-        dwarves[j].selected = true && !(dwarves[j].selected);
+		dwarves[j].selected = true && !(dwarves[j].selected);
 	    }
 	}
 	console.log( "Touched tile:" + touchedTile[0] + "-" + touchedTile[1] );
+	miningQueue.push([i,j])
     }
 };
 
@@ -89,13 +101,13 @@ var dwarves = new Array();
 var animatedDwarves;
 
 var theWorld;
-
+var miningQueue = new Array();
 function randomWorld( xSize, ySize ){
     var tmp = [];
     for( var i = 0; i < xSize; ++i ){
 	tmp[i] = [];
 	for( var j = 0; j < ySize; ++j ){
-	    tmp[i][j] = Math.round(Math.random());
+	    tmp[i][j] = 1;//Math.round(Math.random());
 	}
     }
     return tmp;
@@ -118,12 +130,12 @@ function renderWorld(){
 			    worldContext.drawImage(tileImage, imageTileSize, 0, imageTileSize, imageTileSize, x, y, tileSize, tileSize); //draw the top side
 			}
 		    }
-		    if( j < theWorld[i].length ){
+		    if( j < theWorld[i].length - 1 ){
 			if( theWorld[i][j+1] ){
 			    worldContext.drawImage(tileImage, 2*imageTileSize, 0, imageTileSize, imageTileSize, x, y, tileSize, tileSize); //draw the right side
 			}
 		    }
-		    if( i < theWorld.length ){
+		    if( i < theWorld.length - 1 ){
 			if( theWorld[i+1][j] ){
 			    worldContext.drawImage(tileImage, 3*imageTileSize, 0, imageTileSize, imageTileSize, x, y, tileSize, tileSize); //draw the bottom side
 			}
@@ -166,11 +178,12 @@ $(function() {
     worldContext = worldCanvas.getContext('2d');
     worldContext.clearRect(0, 0, worldCanvas.width, worldCanvas.height); // clear canvas
 
-
-    spawnDwarf(2,4);
-    spawnDwarf(3,7);
-    spawnDwarf(5,5);
-
+    theWorld[4][4] = 0;
+    spawnDwarf(4,4);
+    spawnDwarf(7,7);
+    spawnDwarf(8,9);
+    dwarves[2].setStatus("monkey");
+    theWorld[8][9] = 0;
     animatedDwarves = new MiniDaemon( dwarves, animate, 500 );
     animatedDwarves.start();
     renderWorld( worldCanvas );
